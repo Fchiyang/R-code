@@ -151,6 +151,7 @@ awk '{print $1}' admissions.csv.gz | sort | uniq | wc -l
 ```{bash}
 #| eval: false
 cd ..
+cd ..
 cd Downloads
 cd mimic-iv-1.0
 cd core
@@ -189,6 +190,8 @@ and
 #| eval: false
 echo 'hello, world' >> test2.txt
 ```
+
+no difference
 
 3. Using your favorite text editor (e.g., `vi`), type the following and save the file as `middle.sh`
 nano 
