@@ -5,7 +5,7 @@ author: Fuchi Yang and 405727254
 format:
   html:
     theme: cosmo
-    number-sections: tcdrue
+    number-sections: true
     toc: true
     toc-depth: 4
     toc-location: left
@@ -43,6 +43,14 @@ sessionInfo()
 ## Q2. Data ethics training
 
 This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-iv.mit.edu), a freely accessible critical care database developed by the MIT Lab for Computational Physiology. Follow the instructions at <https://mimic.mit.edu/docs/gettingstarted/> to (1) complete the CITI `Data or Specimens Only Research` course and (2) obtain the PhysioNet credential for using the MIMIC-IV data. Display the verification links to your completion report and completion certificate here. (Hint: The CITI training takes a couple hours and the PhysioNet credentialing takes a couple days; do not leave it to the last minute.)
+
+completion:
+https://www.citiprogram.org/verify/?k726a5b1e-99a1-4c08-a9ae-f06b5368b777-53983534
+
+certificate:
+https://www.citiprogram.org/verify/?wa12cf624-d5cd-46a4-a58b-53f18b26a146-53983534
+
+
 
 
 ## Q3. Linux Shell Commands
@@ -92,16 +100,18 @@ cd mimic-iv-1.0
 cd icu
 ls -l 
 ```
-
+Since when we compress file, we could also reduce the file size. 
 
 3. Briefly describe what bash commands `zcat`, `zless`, `zmore`, and `zgrep` do.
 
+These five commands are to display a compressed file and to allowing the user to expand and view a compressed file without uncompressing that file.
 
 4. What's the output of the following bash script?
 
 show all the file name include .gz
 ```{bash}
 #| eval: false
+cd ..
 cd ..
 cd Downloads
 cd mimic-iv-1.0
@@ -114,6 +124,7 @@ Display the number of lines in each data file using a similar loop.
 
 ```{bash}
 #| eval: false
+cd ..
 cd ..
 cd Downloads
 cd mimic-iv-1.0
@@ -129,6 +140,7 @@ done
 
 ```{bash}
 #| eval: false
+cd ..
 cd ..
 cd Downloads
 cd mimic-iv-1.0
@@ -148,6 +160,7 @@ awk '{print $1}' admissions.csv.gz | sort | uniq | wc -l
 ```{bash}
 #| eval: false
 cd ..
+cd ..
 cd Downloads
 cd mimic-iv-1.0
 cd core
@@ -165,14 +178,22 @@ awk '{print $9}' admissions.csv.gz | sort | uniq | wc -l
 wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
 ```
 Explain what `wget -nc` does. Do **not** put this text file `pg42671.txt` in Git. Complete the following loop to tabulate the number of times each of the four characters is mentioned using Linux commands.
+
+Wget is a computer tool to retrieve content and files from various web servers
+nc command is a command-line utility for reading and writing data between two computer networks
 ```{bash}
 #| eval: false
 
+cd ..
+cd ..
+cd Downloads
+cd mimic-iv-1.0
 
 for char in Elizabeth Jane Lydia Darcy
 do
   echo $char:
-  # some bash commands here
+  cat pg42671.txt | grep -o -i $char | wc -l 
+    
 done
 ```
 
@@ -186,6 +207,8 @@ and
 #| eval: false
 echo 'hello, world' >> test2.txt
 ```
+
+> and >>
 
 3. Using your favorite text editor (e.g., `vi`), type the following and save the file as `middle.sh`
 nano 
@@ -205,12 +228,15 @@ chmod 777
 ```{bash}
 #| eval: false
 cd ..
+cd ..
 cd Downloads
 cd mimic-iv-1.0
 
 bash middle.sh pg42671.txt 20 5
 ```
 Explain the output. Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this shell script. Why do we need the first line of the shell script?
+
+To identify the shell to use
 
 ## Q5. More fun with Linux
 
@@ -227,17 +253,29 @@ cal 9 1752
 #today#
 date
 
+#host name of server who currently log in
 hostname
+#hardware name of linux
 arch
+#info of system
 uname -a
+#running time
 uptime
+#local terminal
 who am i 
-who 
+#status
+who
+#process by log-in user
 w
+#id 
 id
+#last ten logged-in users
 last | head
+#display line of text/string that are passed as an argument .
 echo {con,pre}{sent,fer}{s,ed} 
+#check the shell has been stopped for five sec.
 time sleep 5 
+# last ten commands
 history | tail
 
 
