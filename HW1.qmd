@@ -92,9 +92,10 @@ cd mimic-iv-1.0
 cd icu
 ls -l 
 ```
-
+Since when we compress file, we could also reduce the file size. 
 
 3. Briefly describe what bash commands `zcat`, `zless`, `zmore`, and `zgrep` do.
+
 
 
 4. What's the output of the following bash script?
@@ -191,7 +192,7 @@ and
 echo 'hello, world' >> test2.txt
 ```
 
-no difference
+#no difference
 
 3. Using your favorite text editor (e.g., `vi`), type the following and save the file as `middle.sh`
 nano 
@@ -210,6 +211,7 @@ chmod 777
 
 ```{bash}
 #| eval: false
+cd ..
 cd ..
 cd Downloads
 cd mimic-iv-1.0
