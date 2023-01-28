@@ -103,6 +103,7 @@ show all the file name include .gz
 ```{bash}
 #| eval: false
 cd ..
+cd ..
 cd Downloads
 cd mimic-iv-1.0
 for datafile in core/*.gz
@@ -114,6 +115,7 @@ Display the number of lines in each data file using a similar loop.
 
 ```{bash}
 #| eval: false
+cd ..
 cd ..
 cd Downloads
 cd mimic-iv-1.0
@@ -129,6 +131,7 @@ done
 
 ```{bash}
 #| eval: false
+cd ..
 cd ..
 cd Downloads
 cd mimic-iv-1.0
