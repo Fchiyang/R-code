@@ -44,6 +44,14 @@ sessionInfo()
 
 This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-iv.mit.edu), a freely accessible critical care database developed by the MIT Lab for Computational Physiology. Follow the instructions at <https://mimic.mit.edu/docs/gettingstarted/> to (1) complete the CITI `Data or Specimens Only Research` course and (2) obtain the PhysioNet credential for using the MIMIC-IV data. Display the verification links to your completion report and completion certificate here. (Hint: The CITI training takes a couple hours and the PhysioNet credentialing takes a couple days; do not leave it to the last minute.)
 
+completion:
+https://www.citiprogram.org/verify/?k726a5b1e-99a1-4c08-a9ae-f06b5368b777-53983534
+
+certificate:
+https://www.citiprogram.org/verify/?wa12cf624-d5cd-46a4-a58b-53f18b26a146-53983534
+
+
+
 
 ## Q3. Linux Shell Commands
 
@@ -96,7 +104,7 @@ Since when we compress file, we could also reduce the file size.
 
 3. Briefly describe what bash commands `zcat`, `zless`, `zmore`, and `zgrep` do.
 
-
+These five commands are to display a compressed file and to allowing the user to expand and view a compressed file without uncompressing that file.
 
 4. What's the output of the following bash script?
 
@@ -192,7 +200,7 @@ and
 echo 'hello, world' >> test2.txt
 ```
 
-#no difference
+> and >>
 
 3. Using your favorite text editor (e.g., `vi`), type the following and save the file as `middle.sh`
 nano 
@@ -235,17 +243,29 @@ cal 9 1752
 #today#
 date
 
+#host name of server who currently log in
 hostname
+#hardware name of linux
 arch
+#info of system
 uname -a
+#running time
 uptime
+#local terminal
 who am i 
-who 
+#status
+who
+#process by log-in user
 w
+#id 
 id
+#last ten logged-in users
 last | head
+#display line of text/string that are passed as an argument .
 echo {con,pre}{sent,fer}{s,ed} 
+#check the shell has been stopped for five sec.
 time sleep 5 
+# last ten commands
 history | tail
 
 
