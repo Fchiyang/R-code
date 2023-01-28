@@ -86,7 +86,7 @@ ls -l
 ```{bash}
 #| eval: false
 cd ..
-
+cd ..
 cd Downloads
 cd mimic-iv-1.0
 cd icu
