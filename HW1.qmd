@@ -5,7 +5,7 @@ author: Fuchi Yang and 405727254
 format:
   html:
     theme: cosmo
-    number-sections: tcdrue
+    number-sections: true
     toc: true
     toc-depth: 4
     toc-location: left
