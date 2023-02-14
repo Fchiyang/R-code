@@ -94,14 +94,15 @@ Yes, because unique id only 53150, less than total number 76530
 
 3. Summarize the number of ICU stays per `subject_id` by graphs. 
 ```{r}
-count_table <- icustays_tble %>% count(subject_id)
-count_table
-ggplot(data=count_table, aes(subject_id, n)) +    
-  geom_bar(stat = "identity") 
+plot_icu_stay <- icustays_tble %>%
+  count(subject_id)%>%
+  count(n)
+plot1<-ggplot(data = plot_icu_stay) +    
+  geom_bar(mapping = aes (x=n, y=nn, fill=nn))+xlim(0,40)+
+  labs(x="Number of ICU stays per 'subject id'",
+    y="Number of subject ids with specific number of ICU stays")
 
-+
-  theme(axis.text.x = element_text(angle = 90, size = 10))
-
+plot1
 ```
 
 
