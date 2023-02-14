@@ -36,7 +36,7 @@ library(tidyverse)
 
 MIMIC data location
 ```{r}
-mimic_path <- "/Users/fuchiyang/mimic-iv-1.0"
+mimic_path <- "/Users/fuchiyang/203b-hw/mimic-iv-1.0"
 ```
 
 In this exercise, we use tidyverse (ggplot2, dplyr, etc) to explore the [MIMIC-IV](https://mimic.mit.edu/docs/iv/) data introduced in [homework 1](https://ucla-biostat-203b.github.io/2023winter/hw/hw1/hw1.html) and to build a cohort of ICU stays.
@@ -57,6 +57,12 @@ Which function is fastest? Is there difference in the (default) parsed data type
 
 For later questions, we stick to the `read_csv` in tidyverse.
 
+```{r}
+system.time(tmp_t <- read_csv(str_c(mimic_path,"/core/admissions.csv.gz")))
+system.time(tmp_f <- fread(str_c(mimic_path,"/core/admissions.csv.gz")))
+```
+
+
 ## Q2. ICU stays
 
 `icustays.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/icu/icustays/>) contains data about Intensive Care Units (ICU) stays. The first 10 lines are
@@ -72,10 +78,32 @@ system(
 ```
 
 1. Import `icustatys.csv.gz` as a tibble `icustays_tble`. 
+```{r}
+icustays<- read_csv(str_c(mimic_path, "/icu/icustays.csv.gz"))
+icustays_tble <- icustays %>%
+  arrange(subject_id, hadm_id) 
+```
 
-2. How many unique `subject_id`? Can a `subject_id` have multiple ICU stays? 
+
+2. How many unique `subject_id`? Can a `subject_id` have multiple ICU stays?
+```{r}
+ icustays_tble  
+nrow(distinct(icustays_tble, subject_id))
+```
+Yes, because unique id only 53150, less than total number 76530
 
 3. Summarize the number of ICU stays per `subject_id` by graphs. 
+```{r}
+count_table <- icustays_tble %>% count(subject_id)
+count_table
+ggplot(data=count_table, aes(subject_id, n)) +    
+  geom_bar(stat = "identity") 
+
++
+  theme(axis.text.x = element_text(angle = 90, size = 10))
+
+```
+
 
 4. For each `subject_id`, let's only keep the first ICU stay in the tibble `icustays_tble`. (Hint: `slice_min` and `slice_max` may take long. Think alternative ways to achieve the same function.)
 
