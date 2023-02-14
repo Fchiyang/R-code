@@ -133,8 +133,20 @@ system(
 ```
 
 1. Import `admissions.csv.gz` as a tibble `admissions_tble`.
+```{r}
+admissions <- read_csv(str_c(mimic_path,"/core/admissions.csv.gz"))
+admissions_tble <- admissions 
+
+```
 
 2. Let's only keep the admissions that have a match in `icustays_tble` according to `subject_id` and `hadmi_id`.
+
+```{r}
+admissions_tble <- admissions_tble %>%
+  arrange(subject_id, hadm_id) %>%
+  semi_join(icustays_tble, by = c("subject_id", "hadm_id")) 
+```
+
 
 3. Summarize the following variables by graphics. 
 
@@ -145,6 +157,33 @@ system(
     - admission hour (anything unusual?)  
     - admission minute (anything unusual?)  
     - length of hospital stay (anything unusual?)    
+```{r}
+#admission year
+ggplot(data = admissions_tble) + 
+  geom_bar(mapping = aes(x = year(admittime))) +
+  labs(x = "Admission Year")
+
+#admission month
+ggplot(data = admissions_tble) + 
+  stat_count(mapping = aes(x = lubridate::month(admittime, label = T))) +
+  labs(x = "Admission Month")
+
+#admission month per day
+ggplot(data = admissions_tble) + 
+  stat_count(mapping = aes(x = mday(admittime))) +
+  labs(x = "Admission Month Day")
+
+#admission week day
+ggplot(data = admissions_tble) + 
+  stat_count(mapping = aes(x = lubridate::wday(admittime, label = T))) +
+  labs(x = "Admission Week Day")
+
+#admission hour day
+ggplot(data = admissions_tble) + 
+  stat_count(mapping = aes(x = hour(admittime))) +
+  labs(x = "Admission Hour Day")
+
+```
     
 ## Q4. `patients` data
 
