@@ -109,6 +109,14 @@ plot1
 
 
 4. For each `subject_id`, let's only keep the first ICU stay in the tibble `icustays_tble`. (Hint: `slice_min` and `slice_max` may take long. Think alternative ways to achieve the same function.)
+```{r}
+icustays_tble <- icustays_tble %>%
+  arrange(subject_id, intime) %>%
+  distinct(subject_id, .keep_all = TRUE)%>%
+  slice_head(n=1) %>%
+  print(width = Inf)
+```
+
 
 ## Q3. `admission` data
 
