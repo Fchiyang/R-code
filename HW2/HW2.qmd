@@ -55,6 +55,8 @@ There are quite a few utilities in R for reading plain text data files. Let us t
 
 Which function is fastest? Is there difference in the (default) parsed data types? (Hint: R function `system.time` measures run times.)
 
+fread is the fasetest function.
+
 For later questions, we stick to the `read_csv` in tidyverse.
 
 ```{r}
@@ -86,22 +88,22 @@ icustays_tble <- icustays %>%
 
 
 2. How many unique `subject_id`? Can a `subject_id` have multiple ICU stays?
+
+53150. Yes, subject_id can have multiple ICU stays since 53150 is less than the total number of rows.
 ```{r}
  icustays_tble  
 nrow(distinct(icustays_tble, subject_id))
 ```
-Yes, because unique id only 53150, less than total number 76530
 
 3. Summarize the number of ICU stays per `subject_id` by graphs. 
 ```{r}
 plot_icu_stay <- icustays_tble %>%
   count(subject_id)%>%
   count(n)
-plot1<-ggplot(data = plot_icu_stay) +    
-  geom_bar(mapping = aes (x=n, y=nn, fill=nn))+xlim(0,40)+
-  labs(x="Number of ICU stays per 'subject id'",
+plot1 <- ggplot(data = plot_icu_stay) +    
+  geom_col(mapping = aes (x=n, y=nn, fill=nn)) +xlim(0,40) +
+  labs(x= "Number of ICU stays per 'subject id.",
     y="Number of subject ids with specific number of ICU stays")
-
 plot1
 ```
 
