@@ -55,7 +55,7 @@ There are quite a few utilities in R for reading plain text data files. Let us t
 
 Which function is fastest? Is there difference in the (default) parsed data types? (Hint: R function `system.time` measures run times.)
 
-fread is the fasetest function.
+fread is the fastest function.    
 
 For later questions, we stick to the `read_csv` in tidyverse.
 
@@ -255,7 +255,7 @@ system(
 ```{r}
  labevent <- read_csv(str_c(mimic_path,"/hosp/labevents.csv.gz"),
   show_col_types = FALSE)
-  nrow(labevent)
+  nrow(labevent)%>%
 ```
 
 
@@ -263,47 +263,88 @@ system(
 
     Hint: `labevents.csv.gz` is a data file too big to be read in by the `read_csv` function in its default setting. Utilize the `col_select` option in the `read_csv` function to reduce the memory burden. It took my computer 5-10 minutes to ingest this file. If your computer really has trouble importing `labevents.csv.gz`, you can import from the reduced data file `labevents_filtered_itemid.csv.gz`.
 ```{r}
-labevents<- read_csv(str_c(mimic_path,"/hosp/labevents_filtered_itemid.csv.gz",
-col_types = cols_only(subject_id = col_double(), 
-                      itemid = col_double(), 
-                      charttime = col_datetime(), 
-                      valuenum = col_double()),
-                          lazy = TRUE)
- d_labitems_tble <- read_csv(str_c(mimic_path,"/hosp/d_labitems.csv.gz"))
-           choose_label <- c("50912", "50971", "50983", "50902", "50882", 
-                            "51221", "51301", "50931", "50960", "50893")
-              labevents_tble <- labevents
-                                      labevents_tble <- labevents_tble %>%
-                                        arrange(subject_id, itemid) %>%
-                                        semi_join(icustays_tble, by = c("subject_id")) %>%
-                                        left_join(select(d_labitems_tble, itemid, label), by = c("itemid")) %>%
-                                        print(width = Inf)
+labevents<- 
+  read_csv(str_c(mimic_path,"/hosp/labevents_filtered_itemid.csv.gz"), 
+           col_types = cols_only(subject_id = col_double(), 
+                                 itemid = col_double(), 
+                                 charttime = col_datetime(), 
+                                 valuenum = col_double()),
+           lazy = TRUE)
+
+d_labitems_tble <- read_csv(str_c(mimic_path,"/hosp/d_labitems.csv.gz"))
+
+choose_label <- c("50912", "50971", "50983", "50902", "50882", 
+                "51221", "51301", "50931", "50960", "50893")
+labevents_tble <- labevents
+labevents_tble <- labevents_tble %>%
+  arrange(subject_id, itemid) %>%
+  semi_join(icustays_tble, by = c("subject_id")) %>%
+  left_join(select(d_labitems_tble, itemid, label), by = c("itemid")) %>%
+  print(width = Inf)
 ```
     
 
 3. Further restrict `labevents_tble` to the first lab measurement during the ICU stay. 
 ```{r}
- labevents_tble <- labevents_tble %>%
-                                        left_join(select(icustays_tble, subject_id, intime, outtime), 
-                                                  by = c("subject_id")) 
 labevents_tble <- labevents_tble %>%
-                                        filter(charttime >= intime, charttime <= outtime) %>%
-                                        group_by(subject_id, itemid) %>%
-                                        arrange(charttime, .by_group = TRUE) %>%
-                                        slice_head(n = 1) %>%
-                                        ungroup() %>%
-                                        select(-c(itemid, charttime, intime, outtime)) %>%
-                                        pivot_wider(names_from = label, values_from = valuenum) %>%
-                                        rename(Calcium = "Calcium, Total", WBC = "White Blood Cells") %>%
-                                        print(width = Inf) %>%
-                                        write_rds("labevents_tble.rds")
-                                      
-                                      labevents_tble
+  left_join(select(icustays_tble, subject_id, intime, outtime), 
+            by = c("subject_id")) 
+
+
+
+
+  labevents_tble <- labevents_tble %>%
+  filter(charttime >= intime, charttime <= outtime) %>%
+  group_by(subject_id, itemid) %>%
+  arrange(charttime, .by_group = TRUE) %>%
+  slice_head(n = 1) %>%
+  ungroup() %>%
+  select(-c(itemid, charttime, intime, outtime)) %>%
+  pivot_wider(names_from = label, values_from = valuenum) %>%
+  rename(Calcium = "Calcium, Total", WBC = "White Blood Cells") %>%
+  print(width = Inf) %>%
+  write_rds("labevents_tble.rds")
+```
+
+
+```{r}
+labevents_tble
+```
+
+
+```{r}
 ```
 
 4. Summarize the lab measurements by appropriate numerics and graphics. 
 ```{r}
  summary(labevents_tble[-1])
+```
+```{r}
+labevents_tble
+```
+
+
+```{r}
+ggplot(data = labevents_tble, mapping = aes( y = Bicarbonate)) + 
+  geom_boxplot()
+ggplot(data = labevents_tble, mapping = aes( y = Calcium)) + 
+  geom_boxplot()
+ggplot(data = labevents_tble, mapping = aes( y = Chloride)) + 
+  geom_boxplot()
+ggplot(data = labevents_tble, mapping = aes( y = Creatinine)) + 
+  geom_boxplot()
+ggplot(data = labevents_tble, mapping = aes( y = Glucose)) + 
+  geom_boxplot()
+ggplot(data = labevents_tble, mapping = aes( y = Hematocrit)) + 
+  geom_boxplot()
+ggplot(data = labevents_tble, mapping = aes( y = Magnesium)) + 
+  geom_boxplot()
+ggplot(data = labevents_tble, mapping = aes( y = Potassium)) + 
+  geom_boxplot()
+ggplot(data = labevents_tble, mapping = aes( y = Sodium)) + 
+  geom_boxplot()
+ggplot(data = labevents_tble, mapping = aes( y = WBC)) + 
+  geom_boxplot()
 ```
 
 
@@ -333,50 +374,51 @@ system(
 1. We are interested in the vitals for ICU patients: heart rate (220045), mean non-invasive blood pressure (220181), systolic non-invasive blood pressure (220179), body temperature in Fahrenheit (223761), and respiratory rate (220210). Retrieve a subset of `chartevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `chartevents_tble`.
 ```{r}
  chartevents <-
-                                        read_csv(str_c(mimic_path,"/icu/chartevents_filtered_itemid.csv.gz"),
-                                                 col_types = cols_only(subject_id = col_double(),
-                                                                       hadm_id = col_double(),
-                                                                       itemid = col_double(),
-                                                                       itemid = col_double(), 
-                                                                       charttime = col_datetime(), 
-                                                                       valuenum = col_double()),
-                                                 lazy = TRUE)
-                                      d_items_tble <- read_csv(str_c(mimic_path,"/icu/d_items.csv.gz"))
-                                      
-                                      choice_sel <- c("220045", "220181", "220179", "223761", "220210")
-                                      chartevents_tble <- chartevents
-                                      chartevents_tble <- chartevents_tble %>%
-                                        semi_join(icustays_tble, by = c("subject_id")) %>%
-                                        left_join(select(d_items_tble, itemid, label), by = c("itemid")) %>%
-                                        print(width = Inf)
-                                      
-                                      
-                                      chartevents_tble
+  read_csv(str_c(mimic_path,"/icu/chartevents_filtered_itemid.csv.gz"),
+           col_types = cols_only(subject_id = col_double(),
+                                 hadm_id = col_double(),
+                                 itemid = col_double(),
+                                 itemid = col_double(), 
+                                 charttime = col_datetime(), 
+                                 valuenum = col_double()),
+           lazy = TRUE)
+d_items_tble <- read_csv(str_c(mimic_path,"/icu/d_items.csv.gz"))
+
+choice_sel <- c("220045", "220181", "220179", "223761", "220210")
+chartevents_tble <- chartevents
+chartevents_tble <- chartevents_tble %>%
+  semi_join(icustays_tble, by = c("subject_id")) %>%
+  left_join(select(d_items_tble, itemid, label), by = c("itemid")) %>%
+  print(width = Inf)
+
+
+chartevents_tble
 ```
 
     Hint: `chartevents.csv.gz` is a data file too big to be read in by the `read_csv` function in its default setting. Utilize the `col_select` option in the `read_csv` function to reduce the memory burden. It took my computer >15 minutes to ingest this file. If your computer really has trouble importing `chartevents.csv.gz`, you can import from the reduced data file `chartevents_filtered_itemid.csv.gz`.
 
 2. Further restrict `chartevents_tble` to the first vital measurement during the ICU stay. 
 ```{r}
- chartevents_tble <- chartevents_tble %>%
-                                        left_join(select(icustays_tble, subject_id, intime, outtime), 
-                                                  by = c("subject_id")) 
-                                      
-                                      chartevents_tble   
-                                      chartevents_tble<- chartevents_tble %>%
-                                        filter(charttime >= intime, charttime <= outtime) %>%
-                                        group_by(subject_id, itemid) %>%
-                                        arrange(charttime, .by_group = TRUE) %>%
-                                        slice_head(n = 1) %>%
-                                        ungroup() %>%
-                                        select(c(subject_id, label, valuenum)) %>%
-                                        pivot_wider(names_from = label, values_from = valuenum) %>%
-                                        rename(HR = "Heart Rate", RR = "Respiratory Rate", 
-                                               Mean_BP = "Non Invasive Blood Pressure Systolic",
-                                               Systolic_BP = "Non Invasive Blood Pressure Mean",
-                                               BT = "Temperature Fahrenheit") %>%
-                                        print(width = Inf) %>%
-                                        write_rds("chartevents_tble.rds")
+chartevents_tble <- chartevents_tble %>%
+left_join(select(icustays_tble, subject_id, intime, outtime), 
+          by = c("subject_id")) 
+
+chartevents_tble   
+chartevents_tble<- chartevents_tble %>%
+filter(charttime >= intime, charttime <= outtime) %>%
+group_by(subject_id, itemid) %>%
+arrange(charttime, .by_group = TRUE) %>%
+slice_head(n = 1) %>%
+ungroup() %>%
+select(c(subject_id, label, valuenum)) %>%
+pivot_wider(names_from = label, values_from = valuenum) %>%
+rename(HR = "Heart Rate", RR = "Respiratory Rate", 
+         Mean_BP = "Non Invasive Blood Pressure Systolic",
+         Systolic_BP = "Non Invasive Blood Pressure Mean",
+         BT = "Temperature Fahrenheit") %>%
+print(width = Inf) %>%
+write_rds("chartevents_tble.rds")
+
 ```
 
 3. Summarize these vital measurements by appropriate numerics and graphics. 
@@ -397,24 +439,23 @@ Let us create a tibble `mimic_icu_cohort` for all ICU stays, where rows are the 
 
 ```{r}
  # file.remove("mimic_icu_cohort.rds")
-                                      
-                                      mimic_icu_cohort <- icustays_tble %>%
-                                        left_join(admissions_tble, by = c("subject_id", "hadm_id")) %>%
-                                        left_join(patients_tble, by = c("subject_id")) %>%
-                                        left_join(labevents_tble, by = c("subject_id")) %>%
-                                        left_join(chartevents_tble, by = c("subject_id")) %>%
-                                        mutate(age_hadm = anchor_age + year(admittime) - anchor_year) %>%
-                                        filter(age_hadm > 18) %>%
-                                        mutate(thirty_day_mort = 
-                                                 ifelse(is.na(deathtime), "FALSE", 
-                                                        ifelse(as.Date(deathtime) - as.Date(admittime) <= 30, 
-                                                               "TRUE", "FALSE"))) %>%
-                                        print(width = Inf) %>%
-                                        write_rds("mimic_icu_cohort.rds")
-                                      
-                                      
-                                      table(mimic_icu_cohort$thirty_day_mort)
-                                      
+
+ mimic_icu_cohort <- icustays_tble %>%
+    left_join(admissions_tble, by = c("subject_id", "hadm_id")) %>%
+    left_join(patients_tble, by = c("subject_id")) %>%
+    left_join(labevents_tble, by = c("subject_id")) %>%
+    left_join(chartevents_tble, by = c("subject_id")) %>%
+    mutate(age_hadm = anchor_age + year(admittime) - anchor_year) %>%
+    filter(age_hadm > 18) %>%
+    mutate(thirty_day_mort = 
+             ifelse(is.na(deathtime), "FALSE", 
+                    ifelse(as.Date(deathtime) - as.Date(admittime) <= 30, 
+                           "TRUE", "FALSE"))) %>%
+    print(width = Inf) %>%
+    write_rds("mimic_icu_cohort.rds")
+
+
+table(mimic_icu_cohort$thirty_day_mort)                                   
 ```
 
 
@@ -430,84 +471,4 @@ Summarize following information using appropriate numerics or graphs.
 
 - `thirty_day_mort` vs first ICU unit
 ```{r}
- ##
-                                      - `thirty_day_mort` vs demographic variables (ethnicity, language, insurance, marital_status, gender, age at hospital admission)
-                                      
-                                      q1 <- mimic_icu_cohort %>%
-                                        ggplot() +
-                                        geom_bar(mapping = aes(x = thirty_day_mort, fill = language), 
-                                                 position = "fill") +
-                                        scale_y_continuous(labels = scales::percent) +
-                                        labs(x = "Mortality", y = "%") 
-                                      
-                                      q2 <- mimic_icu_cohort %>%
-                                        ggplot() +
-                                        geom_bar(mapping = aes(x = thirty_day_mort, fill = insurance), 
-                                                 position = "fill") +
-                                        scale_y_continuous(labels = scales::percent) +
-                                        labs(x = "Mortality", y = "%") 
-                                      
-                                      q3 <- subset(mimic_icu_cohort, !is.na(marital_status)) %>%
-                                        ggplot() +
-                                        geom_bar(mapping = aes(x = thirty_day_mort, fill = marital_status), 
-                                                 position = "fill") +
-                                        scale_y_continuous(labels = scales::percent) +
-                                        labs(x = "Mortality", y = "%") 
-                                      
-                                      q4 <- mimic_icu_cohort %>%
-                                        ggplot() +
-                                        geom_bar(mapping = aes(x = thirty_day_mort, fill = gender), 
-                                                 position = "fill") +
-                                        scale_y_continuous(labels = scales::percent) +
-                                        labs(x = "Mortality", y = "%") 
-                                      
-                                      
-                                      gridExtra::grid.arrange(q1,q2,q3,q4, nrow = 2)
-                                      
-                                      
-                                      
-                                      - `thirty_day_mort` vs first lab measurements
-                                      
-                                      mimic_icu_cohort %>%
-                                        gather(27:36, key = "key", value = "value") %>%
-                                        group_by(key) %>%
-                                        filter(value > quantile(value, 0.025, na.rm = TRUE) 
-                                               & value < quantile(value, 0.975, na.rm = TRUE)) %>%
-                                        ungroup %>%
-                                        ggplot(mapping = aes(x = thirty_day_mort, y = value)) +
-                                        geom_boxplot() +
-                                        labs(x = "Mortality") +
-                                        facet_wrap(~key, scales = "free_y")
-                                      
-                                      
-                                      
-                                      
-                                      
-                                      
-                                      
-                                      
-                                      
-                                      - `thirty_day_mort` vs first vital measurements
-                                      mimic_icu_cohort %>%
-                                        gather(37:41, key = "key", value = "value") %>%
-                                        group_by(key) %>%
-                                        filter(value > quantile(value, 0.025, na.rm = TRUE) 
-                                               & value < quantile(value, 0.975, na.rm = TRUE)) %>%
-                                        ungroup %>%
-                                        ggplot(mapping = aes(x = thirty_day_mort, y = value)) +
-                                        geom_boxplot() +
-                                        labs(x = "Mortality") +
-                                        facet_wrap(~key, scales = "free_y") 
-                                      
-                                      
-                                      
-                                      
-                                      - `thirty_day_mort` vs first ICU unit
-                                      mimic_icu_cohort %>%
-                                        ggplot() +
-                                        geom_bar(mapping = aes(x = thirty_day_mort, fill = first_careunit), 
-                                                 position = "fill") +
-                                        labs(y = "%") +
-                                        scale_y_continuous(labels = scales::percent) +
-                                        labs(x = "Mortality", fill ="First ICU Unit")
-```
+ 
