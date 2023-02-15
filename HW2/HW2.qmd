@@ -311,16 +311,9 @@ labevents_tble <- labevents_tble %>%
 labevents_tble
 ```
 
-
-```{r}
-```
-
 4. Summarize the lab measurements by appropriate numerics and graphics. 
 ```{r}
  summary(labevents_tble[-1])
-```
-```{r}
-labevents_tble
 ```
 
 
@@ -413,9 +406,9 @@ ungroup() %>%
 select(c(subject_id, label, valuenum)) %>%
 pivot_wider(names_from = label, values_from = valuenum) %>%
 rename(HR = "Heart Rate", RR = "Respiratory Rate", 
-         Mean_BP = "Non Invasive Blood Pressure Systolic",
-         Systolic_BP = "Non Invasive Blood Pressure Mean",
-         BT = "Temperature Fahrenheit") %>%
+         sys_BP = "Non Invasive Blood Pressure systolic",
+         mean_BP = "Non Invasive Blood Pressure mean",
+         TF = "Temperature Fahrenheit") %>%
 print(width = Inf) %>%
 write_rds("chartevents_tble.rds")
 
@@ -424,6 +417,19 @@ write_rds("chartevents_tble.rds")
 3. Summarize these vital measurements by appropriate numerics and graphics. 
 ```{r}
 summary(chartevents_tble[-1])
+
+```
+```{r}
+ggplot(data = chartevents_tble, mapping = aes( y = HR)) + 
+  geom_boxplot()
+ggplot(data = chartevents_tble, mapping = aes( y = sys_BP)) + 
+  geom_boxplot()
+ggplot(data = chartevents_tble, mapping = aes( y = mean_BP)) + 
+  geom_boxplot()
+ggplot(data = chartevents_tble, mapping = aes( y = RR)) + 
+  geom_boxplot()
+ggplot(data = chartevents_tble, mapping = aes( y = TF)) + 
+  geom_boxplot()
 ```
 
 ## Q7. Putting things together
