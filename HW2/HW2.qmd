@@ -107,6 +107,7 @@ plot1 <- ggplot(data = plot_icu_stay) +
 plot1
 ```
 
+It is mostly located around zero. 
 
 4. For each `subject_id`, let's only keep the first ICU stay in the tibble `icustays_tble`. (Hint: `slice_min` and `slice_max` may take long. Think alternative ways to achieve the same function.)
 ```{r}
@@ -510,6 +511,27 @@ four<-mimic_icu_cohort %>%
   facet_wrap(~thirty_day_mort)
 four
 ```
+
+
+```{r}
+five<-mimic_icu_cohort %>%
+ ggplot( mapping = aes(x = factor(1), fill = ethnicity))+ 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(x=" ", y = "Mortality") +
+  facet_wrap(~thirty_day_mort)
+five
+```
+```{r}
+six<-mimic_icu_cohort %>%
+ ggplot( mapping = aes(x = factor(1), fill = anchor_year_group))+ 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(x=" ", y = "Mortality") +
+  facet_wrap(~thirty_day_mort)
+six
+```
+
 - `thirty_day_mort` vs first lab measurements
 ```{r}
 mimic_icu_cohort %>%
@@ -523,6 +545,7 @@ mimic_icu_cohort %>%
   labs(x = "Mortality") +
   facet_wrap(~key, scales = "free_y")
 ```
+
 
 - `thirty_day_mort` vs first vital measurements
 ```{r}
@@ -546,10 +569,6 @@ mimic_icu_cohort %>%
            position = "fill") +
   labs(y = "%") +
   scale_y_continuous(labels = scales::percent) +
-```
-
-
-```{r}
-labs(x = "Mortality", fill ="First ICU Unit")
+  labs(x = "Mortality", fill ="First ICU Unit")
 ```
 
