@@ -185,7 +185,8 @@ ggplot(data = admissions_tble) +
   labs(x = "Admission Hour Day")
 
 ```
-    
+The distributions of most of plots are nearly equally but only except the graph of admission hour day.
+
 ## Q4. `patients` data
 
 Patient information is available in `patients.csv.gz`. See <https://mimic.mit.edu/docs/iv/modules/hosp/patients/> for details of each field in this file. The first 10 lines are
@@ -340,8 +341,7 @@ ggplot(data = labevents_tble, mapping = aes( y = Sodium)) +
 ggplot(data = labevents_tble, mapping = aes( y = WBC)) + 
   geom_boxplot()
 ```
-
-
+After considering summeries and plots of data, Distributions of Calcium, Creatinine, Glucose, Magnesium, and WBC are close to zero.
 ## Q6. Vitals from charted events
 
 `chartevents.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/icu/chartevents/>) contains all the charted data available for a patient. During their ICU stay, the primary repository of a patient’s information is their electronic chart. The `itemid` variable indicates a single measurement type in the database. The `value` variable is the value measured for `itemid`. The first 10 lines of `chartevents.csv.gz` are
@@ -433,6 +433,7 @@ ggplot(data = chartevents_tble, mapping = aes( y = TF)) +
   geom_boxplot()
 ```
 
+After both graphing bloxplots and summerize data, the distributions of sys_bp, mean_bp are close to zero.
 ## Q7. Putting things together
 
 Let us create a tibble `mimic_icu_cohort` for all ICU stays, where rows are the first ICU stay of each unique adult (age at admission > 18) and columns contain at least following variables  
@@ -481,6 +482,7 @@ Summarize following information using appropriate numerics or graphs.
   facet_wrap(~thirty_day_mort)
 one
 ```
+In both groups, the group of english is larger.
 ```{r}
   two<-mimic_icu_cohort %>%
  ggplot( mapping = aes(x = factor(1), fill = insurance))+ 
@@ -490,7 +492,7 @@ one
   facet_wrap(~thirty_day_mort)
 two
 ```
-
+In both groups, the group of other is the smallest.
 ```{r}
 three<-mimic_icu_cohort %>%
  ggplot( mapping = aes(x = factor(1), fill = marital_status))+ 
@@ -500,7 +502,7 @@ three<-mimic_icu_cohort %>%
   facet_wrap(~thirty_day_mort)
 three
 ```
-
+In both groups, the group of married is the largest.
 
 ```{r}
 four<-mimic_icu_cohort %>%
@@ -512,7 +514,7 @@ four<-mimic_icu_cohort %>%
 four
 ```
 
-
+In both groups, the group of male is larger.
 ```{r}
 five<-mimic_icu_cohort %>%
  ggplot( mapping = aes(x = factor(1), fill = ethnicity))+ 
@@ -522,6 +524,7 @@ five<-mimic_icu_cohort %>%
   facet_wrap(~thirty_day_mort)
 five
 ```
+In both groups, the group of white is the largest.
 ```{r}
 six<-mimic_icu_cohort %>%
  ggplot( mapping = aes(x = factor(1), fill = anchor_year_group))+ 
@@ -531,6 +534,8 @@ six<-mimic_icu_cohort %>%
   facet_wrap(~thirty_day_mort)
 six
 ```
+In both groups, the group of 2008-2010 is the largest.
+The number of group of false is much larger than the group of true.
 
 - `thirty_day_mort` vs first lab measurements
 ```{r}
@@ -545,7 +550,7 @@ mimic_icu_cohort %>%
   labs(x = "Mortality") +
   facet_wrap(~key, scales = "free_y")
 ```
-
+Compared to the group of true, the group of false is more centered in most graphs.
 
 - `thirty_day_mort` vs first vital measurements
 ```{r}
@@ -560,6 +565,7 @@ mimic_icu_cohort %>%
   labs(x = "Mortality") +
   facet_wrap(~key, scales = "free_y") 
 ```
+In graphs of HR and RR, the group of TRUE seems to have a higher value in comparison with the group of False.
 
 - `thirty_day_mort` vs first ICU unit
 ```{r}
@@ -571,4 +577,4 @@ mimic_icu_cohort %>%
   scale_y_continuous(labels = scales::percent) +
   labs(x = "Mortality", fill ="First ICU Unit")
 ```
-
+In SICU, Neuro SICU, MICU/SICU and CCU, the group of true has a higher percentage than the group of false.
