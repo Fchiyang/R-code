@@ -471,10 +471,85 @@ Summarize following information using appropriate numerics or graphs.
 
 - `thirty_day_mort` vs demographic variables (ethnicity, language, insurance, marital_status, gender, age at hospital admission)
 
+```{r}
+  one<-mimic_icu_cohort %>%
+ ggplot( mapping = aes(x = factor(1), fill = language))+ 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(x=" ", y = "Mortality") +
+  facet_wrap(~thirty_day_mort)
+one
+```
+```{r}
+  two<-mimic_icu_cohort %>%
+ ggplot( mapping = aes(x = factor(1), fill = insurance))+ 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(x=" ", y = "Mortality") +
+  facet_wrap(~thirty_day_mort)
+two
+```
+
+```{r}
+three<-mimic_icu_cohort %>%
+ ggplot( mapping = aes(x = factor(1), fill = marital_status))+ 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(x=" ", y = "Mortality") +
+  facet_wrap(~thirty_day_mort)
+three
+```
+
+
+```{r}
+four<-mimic_icu_cohort %>%
+ ggplot( mapping = aes(x = factor(1), fill = gender))+ 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(x=" ", y = "Mortality") +
+  facet_wrap(~thirty_day_mort)
+four
+```
 - `thirty_day_mort` vs first lab measurements
+```{r}
+mimic_icu_cohort %>%
+  gather(27:36, key = "key", value = "value") %>%
+  group_by(key) %>%
+  filter(value > quantile(value, 0.025, na.rm = TRUE) 
+         & value < quantile(value, 0.975, na.rm = TRUE)) %>%
+  ungroup %>%
+  ggplot(mapping = aes(x = thirty_day_mort, y = value)) +
+  geom_boxplot() +
+  labs(x = "Mortality") +
+  facet_wrap(~key, scales = "free_y")
+```
 
 - `thirty_day_mort` vs first vital measurements
+```{r}
+mimic_icu_cohort %>%
+  gather(37:41, key = "key", value = "value") %>%
+  group_by(key) %>%
+  filter(value > quantile(value, 0.025, na.rm = TRUE) 
+         & value < quantile(value, 0.975, na.rm = TRUE)) %>%
+  ungroup %>%
+  ggplot(mapping = aes(x = thirty_day_mort, y = value)) +
+  geom_boxplot() +
+  labs(x = "Mortality") +
+  facet_wrap(~key, scales = "free_y") 
+```
 
 - `thirty_day_mort` vs first ICU unit
 ```{r}
- 
+mimic_icu_cohort %>%
+  ggplot() +
+  geom_bar(mapping = aes(x = thirty_day_mort, fill = first_careunit), 
+           position = "fill") +
+  labs(y = "%") +
+  scale_y_continuous(labels = scales::percent) +
+```
+
+
+```{r}
+labs(x = "Mortality", fill ="First ICU Unit")
+```
+
