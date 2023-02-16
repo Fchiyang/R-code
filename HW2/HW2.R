@@ -28,17 +28,22 @@ sessionInfo()
 
 Load necessary libraries (you can add more as needed).
 ```{r setup}
+
+install.packages("data.table")
 library(data.table)
+install.packages("lubridate")
 library(lubridate)
+install.packages("R.utils")
 library(R.utils)
+install.packages("tidyverse")
 library(tidyverse)
 ```
 
 MIMIC data location
 ```{r}
-mimic_path <- "~/mimic"
+mimic_path <- "/Users/fuchiyang/203b-hw/mimic-iv-1.0"
 ```
-
+/Users/fuchiyang/203b-hw
 In this exercise, we use tidyverse (ggplot2, dplyr, etc) to explore the [MIMIC-IV](https://mimic.mit.edu/docs/iv/) data introduced in [homework 1](https://ucla-biostat-203b.github.io/2023winter/hw/hw1/hw1.html) and to build a cohort of ICU stays.
 
 Display the contents of MIMIC data folder. 
@@ -112,6 +117,7 @@ ggplot(data=count_table, aes(subject_id, n)) +
 icustays_tble <- icustays_tble %>%
   arrange(subject_id, intime) %>%
   distinct(subject_id, .keep_all = TRUE)%>%
+  slice_head(n=1) %>%
   print(width = Inf)
 
 
@@ -295,6 +301,9 @@ ggplot(data = patients_tble) +
                                       
                                       
                                       summary(labevents_tble[-1])
+                                      
+                                      
+                                      ##only keep. items during the first ICU stayＩ
                                       
                                       
                                       
