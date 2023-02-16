@@ -257,7 +257,7 @@ system(
 ```{r}
  labevent <- read_csv(str_c(mimic_path,"/hosp/labevents.csv.gz"),
   show_col_types = FALSE)
-  nrow(labevent)%>%
+  nrow(labevent)
 ```
 
 
