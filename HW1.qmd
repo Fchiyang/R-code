@@ -278,5 +278,9 @@ time sleep 5
 # last ten commands
 history | tail
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
 ```
 
