@@ -156,20 +156,13 @@ labevents_tble <- labevents_tble %>%
 
 ```{r}
 labevents_tble <- labevents_tble %>%
-  group_by(subject_id, itemid) 
-  print(width = Inf)
-```
-
-
-```{r}
-
-  arrange(charttime, .by_group = TRUE) %>%
-  slice_min(n = 1) %>%
+  group_by(subject_id, itemid, charttime) %>%
+  summarise_all(min) %>%
   ungroup() %>%
   select(-itemid, -charttime, -intime, -outtime) %>%
   pivot_wider(names_from = label, values_from = valuenum) %>%
-  print(width = Inf) 
-  
+  rename(Calcium = "Calcium, Total", WBC = "White Blood Cells") %>%
+  print(width = Inf)
 ```
 
 7. Connect to `chartevents` table and retrieve a subset that only contain subjects who appear in `icustays_tble` and the chart events listed in HW2.
