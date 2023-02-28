@@ -99,12 +99,25 @@ icustays_tble <- icustays_tble %>%
 ```{r}
 # # TODO
 # admissions_tble <- 
+admissions <- read_csv(str_c(mimic_path,"/core/admissions.csv.gz"))
+admissions_tble <- admissions
+
+admissions_tble <- admissions_tble %>%
+  arrange(subject_id, hadm_id) %>%
+  semi_join(icustays_tble, by = c("subject_id", "hadm_id")) %>%
+print(width=Inf)
 ```
 
 5. Connect to the `patients` table and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).
 ```{r}
 # # TODO
 # patients_tble <-
+patients <- read_csv(str_c(mimic_path,"/core/patients.csv.gz"))
+
+patients_tble <- patients %>%
+  arrange(subject_id) %>%
+  semi_join(icustays_tble, by = c("subject_id")) %>%
+  print(width = Inf)
 ```
 
 6. Connect to the `labevents` table and retrieve a subset that only contain subjects who appear in `icustays_tble` and the lab items listed in HW2. 
