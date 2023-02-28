@@ -103,7 +103,6 @@ icustays_tble <- icustays_tble %>%
 ```{r}
 # # TODO
 admissions_tble <- tbl(con, "icustays") %>%
-admissions_tble <- admissions_tble %>%
   arrange(subject_id, hadm_id) %>%
   semi_join(icustays_tble, by = c("subject_id", "hadm_id")) %>%
 print(width=Inf)
