@@ -36,7 +36,7 @@ library(tidyverse)
 
 I found the current versions of bigrquery (v1.4.1) and dbplyr (v2.3.0) don't work well together on my computer ([Issue](https://github.com/r-dbi/bigrquery/issues/509)). If you encounter similar issues, you can install older versions of the these two packages.
 ```{r}
-#| eval: false
+#| eval: TRUE
 library(devtools)
 install_version("bigrquery", version = "1.4.0")
 install_version("dbplyr", version = "2.1.1")
