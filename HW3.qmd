@@ -179,7 +179,7 @@ chartevents_tble <- chartevents_tble %>%
   select(stay_id, itemid, charttime, valuenum) %>%
   filter(itemid %in% choice_sel) %>%
   semi_join(icustays_tble, by = c("stay_id")) %>%
-  #left_join(select(d_items_tble, itemid, label), by = c("itemid")) %>%
+  left_join(select(d_labitems_tble, itemid), by = c("itemid")) %>%
   print(width = Inf)
 ```
 Only keep the first chart events during ICU stay and pivot chart events to become variables/columns.
@@ -197,11 +197,11 @@ chartevents_tble <- chartevents_tble %>%
   group_by(stay_id, itemid, charttime) %>%
   summarise_all(min) %>%
   ungroup() %>%
-  select(-itemid, -charttime, -intime, -outtime) %>%
-  pivot_wider(names_from = label, values_from = valuenum) %>%
-  rename(Calcium = "Calcium, Total", WBC = "White Blood Cells") %>%
+  select(-charttime, -intime, -outtime) %>%
+  pivot_wider(names_from = itemid, values_from = valuenum, names_prefix = "chart") %>%
   print(width = Inf)
 ```
+
 
 8. Put things together. This step is similar to Q7 of HW2. Using one chain of pipes `%>%` to perform following data wrangling steps: (i) start with the `icustays_tble` for the first ICU stay of each unique patient, (ii) merge in admissions and patients tables, (iii) keep adults only (age at admission >= 18), (iv) merge in the labevents and chartevents tables, (v) create an indicator for 30-day mortality, (vi) save the final tibble to an `icu_cohort.rds` R data file in the `mimiciv_shiny` folder.
 
