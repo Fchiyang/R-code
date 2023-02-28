@@ -49,17 +49,17 @@ Below is an outline of steps.
 1. Load the GCP BigQuery service account token. Please place the service account token (available at BruinLearn) at your MIMIC data folder: `~/mimic/biostat-203b-2022winter-3fdc2392ac39.json`.
 ```{r}
 # path to the service account token 
-satoken <- "/Users/fuchiyang/203b-hw/mimic-iv-1.0/mimic/biostat-203b-2023winter-3fdc2392ac39.json"
-# BigQuery authentication using service account
+satoken <- "/Users/fuchiyang/203b-hw/mimic-iv-1.0/biostat-203b-2023winter-3fdc2392ac39.json"
+
 bq_auth(
   path = satoken,
-  email = "mimiciv-bigquery@biostat-203b-2023winter.iam.gserviceaccount.com",
+  email = "mimiciv-bigquery@biostat-203b-2022winter.iam.gserviceaccount.com",
   scopes = c("https://www.googleapis.com/auth/bigquery",
-  "https://www.googleapis.com/auth/cloud-platform")
+     "https://www.googleapis.com/auth/cloud-platform")
 )
 ```
 
-1. Connect to BigQuery database `mimic4_v1_0_203b` in GCP (Google Cloud Platform), using the billing account `biostat-203b-2022winter`.
+1. Connect to      `mimic4_v1_0_203b` in GCP (Google Cloud Platform), using the billing account `biostat-203b-2022winter`.
 ```{r}
 # Connect to the BigQuery database `biostat-203b-2022winter.mimic4_v1_0_203b`
 con <- dbConnect(
