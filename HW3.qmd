@@ -57,7 +57,7 @@ satoken <- "/Users/fuchiyang/203b-hw/mimic-iv-1.0/biostat-203b-2023winter-3fdc23
 
 bq_auth(
   path = satoken,
-  email = "mimiciv-bigquery@biostat-203b-2022winter.iam.gserviceaccount.com",
+  email = "mimiciv-bigquery@biostat-203b-2023winter.iam.gserviceaccount.com",
   scopes = c("https://www.googleapis.com/auth/bigquery",
      "https://www.googleapis.com/auth/cloud-platform")
 )
@@ -102,10 +102,7 @@ icustays_tble <- icustays_tble %>%
 4. Connect to the `admissions` table and only keep the patients who have a match in `icustays_tble` (according to `subject_id` and `hadm_id`).
 ```{r}
 # # TODO
-# admissions_tble <- 
-admissions <- read_csv(str_c(mimic_path,"/core/admissions.csv.gz"))
-admissions_tble <- admissions
-
+admissions_tble <- tbl(con, "icustays") %>%
 admissions_tble <- admissions_tble %>%
   arrange(subject_id, hadm_id) %>%
   semi_join(icustays_tble, by = c("subject_id", "hadm_id")) %>%
