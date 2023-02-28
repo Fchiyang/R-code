@@ -205,11 +205,25 @@ chartevents_tble <- chartevents_tble %>%
 
 8. Put things together. This step is similar to Q7 of HW2. Using one chain of pipes `%>%` to perform following data wrangling steps: (i) start with the `icustays_tble` for the first ICU stay of each unique patient, (ii) merge in admissions and patients tables, (iii) keep adults only (age at admission >= 18), (iv) merge in the labevents and chartevents tables, (v) create an indicator for 30-day mortality, (vi) save the final tibble to an `icu_cohort.rds` R data file in the `mimiciv_shiny` folder.
 
+
 ```{r}
 # make a directory mimiciv_shiny
 if (!dir.exists("mimiciv_shiny")) {
   dir.create("mimiciv_shiny")
 }
+mimic_icu_cohort <- icustays_tble %>%
+    left_join(admissions_tble, by = c("subject_id", "hadm_id")) %>%
+    left_join(patients_tble, by = c("subject_id")) %>%
+    mutate(age_hadm = anchor_age + year(admittime) - anchor_year) %>%
+    filter(age_hadm > 18) %>%
+    left_join(labevents_tble, by = c("subject_id")) %>%
+    left_join(chartevents_tble, by = c("stay_id")) %>%
+    mutate(thirty_day_mort = 
+             ifelse(is.na(dod), "FALSE", 
+                    ifelse(as.Date(dod) - as.Date(admittime) <= 30, 
+                           "TRUE", "FALSE"))) %>%
+    print(width = Inf) %>%
+    write_rds("mimic_icu_cohort.rds")
 ```
 
 ```{r}
