@@ -168,27 +168,18 @@ labevents_tble <- labevents_tble %>%
 7. Connect to `chartevents` table and retrieve a subset that only contain subjects who appear in `icustays_tble` and the chart events listed in HW2.
 ```{r}
 # # TODO
-# chartevents_tble <- 
-d_labitems_tble <- tbl(con, "d_labitems")
+chartevents_tble <- tbl(con, "chartevents")
   
-#labevents_tble <- tbl(con, "labevents")%>%
-  #arrange(subject_id, itemid) %>%
-  #semi_join(icustays_tble, by = c("subject_id")) %>%
-  #left_join(select(d_labitems_tble, itemid, label), by = c("itemid")) %>%
-  #print(width = Inf)
+d_labitems_tble <- tbl(con, "d_labitems")
 
-#labevents_tble<-labevents_tble[labevents_tble$itemid %in% c(50912, 50971, 50983, 50902, 50882, 51221, 51301, 50931, 50960, 50893)]
 
-choosedlab <- c(50912, 50971, 50983, 50902, 50882, 
-                51221, 51301, 50931, 50960, 50893)
+choice_sel <- c(220045, 220181, 220179, 223761, 220210)
 
-labevents_tble <- tbl(con, "labevents")%>%
-  # filter out 10 lab items
-  select(subject_id, itemid, charttime, valuenum) %>%
-  filter(itemid %in% choosedlab) %>%
-  semi_join(icustays_tble, by = c("subject_id")) %>%
-  left_join(select(d_labitems_tble, itemid, label), by = c("itemid")) %>%
-  show_query() %>%
+chartevents_tble <- chartevents_tble %>%
+  select(stay_id, itemid, charttime, valuenum) %>%
+  filter(itemid %in% choice_sel) %>%
+  semi_join(icustays_tble, by = c("stay_id")) %>%
+  #left_join(select(d_items_tble, itemid, label), by = c("itemid")) %>%
   print(width = Inf)
 ```
 Only keep the first chart events during ICU stay and pivot chart events to become variables/columns.
