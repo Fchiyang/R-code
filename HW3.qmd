@@ -121,12 +121,16 @@ patients_tble <- tbl(con, "patients") %>%
 6. Connect to the `labevents` table and retrieve a subset that only contain subjects who appear in `icustays_tble` and the lab items listed in HW2. 
 ```{r}
 # # TODO
+d_labitems_tble <- tbl(con, "d_labitems")
+  
 labevents_tble <- tbl(con, "labevents")%>%
   arrange(subject_id, itemid) %>%
   semi_join(icustays_tble, by = c("subject_id")) %>%
   left_join(select(d_labitems_tble, itemid, label), by = c("itemid")) %>%
   print(width = Inf)
-  
+
+labevents_tble<-labevents_tble[labevents_tble$itemid %in% c(50912, 50971, 50983, 50902, 50882, 51221, 51301, 50931, 50960, 50893)]
+labevents_tble
 ```
 Only keep the first lab measurements during ICU stay and pivot lab items to become variables/columns.
 ```{r}
