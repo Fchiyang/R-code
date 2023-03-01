@@ -19,7 +19,7 @@ ui <- fluidPage(
                       sidebarLayout(
                         sidebarPanel(
                           selectInput("variable",
-                                      "Variable",
+                                      "Variable:",
                                       colnames(data))
                         ),
                         mainPanel(
