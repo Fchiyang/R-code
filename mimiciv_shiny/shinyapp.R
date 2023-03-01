@@ -3,6 +3,8 @@
 ## UI ##
 library(shiny)
 library(tidyverse)
+library(bigrquery)
+
 
 out <- readRDS("/Users/fuchiyang/203b-hw/submit/mimiciv_shiny/mimic_icu_cohort.rds")
 
@@ -53,4 +55,9 @@ server <- function(input, output) {
   })
 }
 shinyApp(ui, server)
+
+
+
+
+
 
