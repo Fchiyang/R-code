@@ -229,10 +229,6 @@ mimic_icu_cohort <- icustays_tble %>%
     
 ```
 
-```{r}
-# # TODO
-# icu_cohort <- icustays_tble %>% ...
-```
 
 Close database connection and clear workspace.
 ```{r, eval=F}
