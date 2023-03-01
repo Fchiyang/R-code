@@ -211,19 +211,22 @@ chartevents_tble <- chartevents_tble %>%
 if (!dir.exists("mimiciv_shiny")) {
   dir.create("mimiciv_shiny")
 }
+
 mimic_icu_cohort <- icustays_tble %>%
     left_join(admissions_tble, by = c("subject_id", "hadm_id")) %>%
     left_join(patients_tble, by = c("subject_id")) %>%
-    mutate(age_hadm = anchor_age + year(admittime) - anchor_year) %>%
-    filter(age_hadm > 18) %>%
     left_join(labevents_tble, by = c("subject_id")) %>%
     left_join(chartevents_tble, by = c("stay_id")) %>%
+    mutate(age_hadm = anchor_age + year(admittime) - anchor_year) %>%
+    filter(age_hadm >= 18) %>%
     mutate(thirty_day_mort = 
-             ifelse(is.na(dod), "FALSE", 
-                    ifelse(as.Date(dod) - as.Date(admittime) <= 30, 
-                           "TRUE", "FALSE"))) %>%
-    print(width = Inf) %>%
-    write_rds("mimic_icu_cohort.rds")
+           ifelse(is.na(dod), FALSE,
+                  DATE_DIFF(date(dod), date(admittime), DAY) <= 30)) %>%
+  collect() %>%
+  write_rds("mimiciv_shiny/mimic_icu_cohort.rds") %>%
+  # show_query() %>%
+  print(width = Inf)
+    
 ```
 
 ```{r}
