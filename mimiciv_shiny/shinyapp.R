@@ -57,6 +57,10 @@ server <- function(input, output) {
 shinyApp(ui, server)
 
 
+##label of variables
+##all variables are needed to be included (individual factors, medical records,
+biomarkers)
+## interactive chart
 
 
 

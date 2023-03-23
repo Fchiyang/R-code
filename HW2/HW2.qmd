@@ -414,6 +414,49 @@ print(width = Inf) %>%
 write_rds("chartevents_tble.rds")
 
 ```
+```{r}
+library(shiny)
+library(ggplot2)
+
+# FAKE DATAFRAME
+
+out <- readRDS("/Users/fuchiyang/203b-hw/submit/mimiciv_shiny/mimic_icu_cohort.rds")
+
+data <- out %>% 
+  count(admission_location)%>%
+  rename(count=n)
+
+
+
+ui <- fluidPage(
+  selectInput("var", "variable", choices = list(
+    "Ethnicity" = "ethnicity",
+    "Language" = "language",
+    "Insurance" = "insurance",
+    "Marital status" = "marital_status",
+    "Gender" = "gender"),selectize = FALSE),
+  verbatimTextOutput("summary"),
+  tableOutput("plot")
+)
+
+server <- function(input, output, session) {
+  dataset <- reactive({
+    get(input$var, "package:ggplot2")
+  })
+}
+  output$summmary <- renderPrint({
+      data %>%
+        group_by_(input$var)  %>%
+        summary(data)
+  
+
+})
+
+shinyApp(ui, server)
+
+```
+
+
 
 3. Summarize these vital measurements by appropriate numerics and graphics. 
 ```{r}
