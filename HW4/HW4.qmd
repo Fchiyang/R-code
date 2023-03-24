@@ -1,0 +1,403 @@
+---
+title: "Biostat 203B Homework 4"
+subtitle: Due Mar 24 @ 11:59PM
+author: Fuchi Yang and 405727254
+format:
+  html:
+    theme: cosmo
+    embed-resources: true
+    number-sections: true
+    toc: true
+    toc-depth: 4
+    toc-location: left
+    code-fold: false
+knitr:
+  opts_chunk: 
+    cache: false    
+    echo: true
+    fig.align: 'center'
+    fig.width: 6
+    fig.height: 4
+    message: FALSE
+---
+
+
+
+Display machine information:
+```{r}
+#| eval: false
+
+sessionInfo()
+```
+Load database libraries and the tidyverse frontend:
+```{r}
+#| eval: false
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(tidymodels))
+suppressPackageStartupMessages(library(lubridate))
+```
+
+## Predicting 30-day mortality
+
+Using the ICU cohort `icu_cohort.rds` you built in Homework 3, develop at least three analytic approaches for predicting the 30-day mortality of patients admitted to ICU using demographic information (gender, age, marital status, ethnicity), first lab measurements during ICU stay, and first vital measurements during ICU stay. For example, you can use (1) logistic regression with elastic net (lasso + ridge) penalty (e.g., glmnet or keras package), (2) random forest, (3) boosting, and (4) support vector machines, or (5) MLP neural network (keras package)
+```{r}
+##load library##
+
+library(GGally)
+library(gtsummary)
+library(tidyverse)
+library(tidymodels)
+library(ranger)
+library(glmnet)
+library(randomForest)
+library(pROC)
+library(stringr)  
+library(xgboost)
+library(readr)
+library(gtsummary)
+library(dplyr)
+options(java.parameters = "-Xmx10g")
+```
+1. Partition data into 50% training set and 50% test set. Stratify partitioning according the 30-day mortality status.
+
+```{r}
+##preprocess##
+#read,select#
+icu_cohort <- read_rds("mimic_icu_cohort.rds") %>%
+   select(thirty_day_mort, marital_status, gender,ethnicity,Sodium, Glucose, Chloride, Potassium,      Creatinine, Hematocrit, Bicarbonate, 
+   WBC, Body_Temperature_Fahrenheit, 
+   Systolic_Non_Inactive_BP,
+   Mean_Non_Inactive_BP,
+   Respiratory_Rate, 
+   Heart_rate, 
+   Admission_age)
+```
+
+
+```{r}
+##UNKNOWN TO NA##
+icu_cohort$ethnicity[icu_cohort$ethnicity == 'UNKNOWN'] <- NA
+icu_cohort$thirty_day_mort = as.factor(icu_cohort$thirty_day_mort) 
+
+##Temperature preprecoess##
+icu_cohort$Body_Temperature_Fahrenheit[icu_cohort$Body_Temperature_Fahrenheit > 45 
+                                  & icu_cohort$Body_Temperature_Fahrenheit < 90 
+                                  & !is.na(icu_cohort$Body_Temperature_Fahrenheit)] <- NA
+icu_cohort$Body_Temperature_Fahrenheit[icu_cohort$Body_Temperature_Fahrenheit <= 34 
+                                       & !is.na(icu_cohort$Body_Temperature_Fahrenheit)] <- NA
+icu_cohort$Body_Temperature_Fahrenheit[icu_cohort$Body_Temperature_Fahrenheit > 34 
+                                  & icu_cohort$Body_Temperature_Fahrenheit <= 45 & 
+                                    !is.na(icu_cohort$Body_Temperature_Fahrenheit)] <- 
+icu_cohort$Body_Temperature_Fahrenheit * 9 / 5 + 32
+icu_cohort$Body_Temperature_Fahrenheit[icu_cohort$Body_Temperature_Fahrenheit >= 115 
+                            & !is.na(icu_cohort$Body_Temperature_Fahrenheit)] <- NA
+
+```
+
+
+```{r}
+#
+icu_cohort %>% tbl_summary(by =thirty_day_mort)
+```
+2. Train and tune the models using the training set.
+
+```{r}
+##split train test##
+set.seed(8)
+
+ICU_split <- initial_split(
+  icu_cohort,
+  strata = "thirty_day_mort", 
+  prop = 0.5
+)
+
+ICU_Train <- training(ICU_split)
+ICU_Test <- testing(ICU_split)
+
+##5CV##
+set.seed(8)
+folds <- vfold_cv(ICU_Train, v = 5)
+folds
+```
+
+
+```{r}
+###RF###
+rf_recipe <- 
+  recipe(
+    thirty_day_mort ~ ., 
+    data = ICU_Train
+  ) %>%
+  # mean and mode imputation 
+  step_impute_mode( marital_status, ethnicity) %>%
+  step_impute_mean("Sodium", "Glucose", "Chloride", "Potassium", "Creatinine",
+                   "Hematocrit", "Bicarbonate", 
+                   "WBC", "Body_Temperature_Fahrenheit", 
+                   "Systolic_Non_Inactive_BP",
+                   "Mean_Non_Inactive_BP",
+                   "Respiratory_Rate", 
+                   "Heart_rate") %>%
+  # create traditional dummy variables
+  step_dummy(all_nominal_predictors()) %>%
+  # zero-variance filter
+  step_zv(all_numeric_predictors()) %>% 
+  # center and scale numeric data
+  #step_normalize(all_numeric_predictors()) %>%
+  # estimate the means and standard deviations
+  prep(training = ICU_Train, retain = TRUE)
+rf_recipe
+
+rf_model <- 
+  rand_forest(
+    mode = "classification",
+    # Number of predictors randomly sampled in each split
+    mtry = tune(),
+    # Number of trees in ensemble
+    trees = tune()
+  ) %>% 
+  set_engine("ranger")
+
+rf_wf <- workflow() %>%
+  add_recipe(rf_recipe) %>%
+  add_model(rf_model)
+rf_wf 
+
+param_grid <- grid_regular(
+  trees(range = c(100L, 300L)), 
+  mtry(range = c(1L, 5L)),
+  levels = c(3, 5)
+)
+param_grid
+
+##RF_fit##
+rf_fit <- rf_wf %>%
+  tune_grid(
+    resamples = folds,
+    grid = param_grid,
+    metrics = metric_set(roc_auc, accuracy)
+  )
+rf_fit
+
+rf_fit %>%
+  collect_metrics() %>%
+  print(width = Inf) %>%
+  filter(.metric == "roc_auc") %>%
+  ggplot(mapping = aes(x = trees, y = mean, color = mtry)) +
+  geom_point() + 
+  # geom_line() + 
+  labs(x = "Number of Trees", y = "5CV AUC")
+
+rf_fit %>%
+  show_best("roc_auc")
+rf_fit
+
+best_rf <- rf_fit %>%
+  select_best("roc_auc")
+best_rf
+
+final_wf <- rf_wf %>%
+  finalize_workflow(best_rf)
+final_wf
+
+final_fit <- 
+  final_wf %>%
+  last_fit(ICU_split)
+final_fit
+
+final_fit %>% 
+  collect_metrics()
+```
+
+```{r}
+####SVM####
+logit_recipe <- 
+  recipe(
+    thirty_day_mort ~ ., 
+    data = ICU_Train
+  ) %>%
+  step_impute_mode( marital_status, ethnicity) %>%
+  step_impute_mean("Sodium", "Glucose", "Chloride", "Potassium", "Creatinine",
+                   "Hematocrit", "Bicarbonate", 
+                   "WBC", "Body_Temperature_Fahrenheit", 
+                   "Systolic_Non_Inactive_BP",
+                   "Mean_Non_Inactive_BP",
+                   "Respiratory_Rate", 
+                   "Heart_rate") %>%
+  # create traditional dummy variables (necessary for svm)
+  step_dummy(all_nominal_predictors()) %>%
+  # zero-variance filter
+  step_zv(all_numeric_predictors()) %>% 
+  # center and scale numeric data
+  step_normalize(all_numeric_predictors()) %>%
+  # estimate the means and standard deviations
+  prep(training = ICU_Train, retain = TRUE)
+logit_recipe
+
+logit_model <- 
+  logistic_reg(
+    penalty = tune(), 
+    mixture = tune()
+  ) %>% 
+  set_engine("glmnet", standardize = FALSE)
+logit_model
+
+logit_wf <- workflow() %>%
+  add_recipe(logit_recipe) %>%
+  add_model(logit_model)
+logit_wf
+
+param_grid <- grid_regular(
+  penalty(range = c(-6, 3)), 
+  mixture(),
+  levels = c(100, 5)
+)
+param_grid
+
+logit_fit <- logit_wf %>%
+  tune_grid(
+    resamples = folds,
+    grid = param_grid,
+    metrics = metric_set(roc_auc, accuracy)
+  )
+logit_fit
+
+logit_fit %>%
+  collect_metrics() %>%
+  print(width = Inf) %>%
+  filter(.metric == "roc_auc") %>%
+  ggplot(mapping = aes(x = penalty, y = mean, color = mixture)) +
+  geom_point() +
+  labs(x = "Penalty", y = "5CV AUC") +
+  scale_x_log10()
+
+logit_fit %>%
+  show_best("roc_auc")
+
+best_logit <- logit_fit %>%
+  select_best("roc_auc")
+best_logit
+
+# Final workflow
+final_wf <- logit_wf %>%
+  finalize_workflow(best_logit)
+final_wf
+
+final_fit <- 
+  final_wf %>%
+  last_fit(ICU_split)
+final_fit
+
+final_fit %>% 
+  collect_metrics()
+```
+
+
+
+
+]
+
+
+```{r}
+gb_recipe <- 
+  recipe(
+    thirty_day_mort ~ ., 
+    data = ICU_Train
+  ) %>%
+  step_impute_mode( marital_status, ethnicity) %>%
+  step_impute_mean("Sodium", "Glucose", "Chloride", "Potassium", "Creatinine",
+                   "Hematocrit", "Bicarbonate", 
+                   "WBC", "Body_Temperature_Fahrenheit", 
+                   "Systolic_Non_Inactive_BP",
+                   "Mean_Non_Inactive_BP",
+                   "Respiratory_Rate", 
+                   "Heart_rate") %>%  # create traditional dummy variables
+  step_dummy(all_nominal_predictors()) %>%
+  # zero-variance filter
+  step_zv(all_numeric_predictors()) %>% 
+  # center and scale numeric data
+  #step_normalize(all_numeric_predictors()) %>%
+  # estimate the means and standard deviations
+  prep(training = ICU_Train, retain = TRUE)
+
+gb_recipe
+
+gb_model <- 
+  boost_tree(
+    mode = "classification",
+    trees = 1000, 
+    tree_depth = tune(),
+    learn_rate = tune()
+  ) %>% 
+  set_engine("xgboost")
+gb_model
+
+
+gb_wf <- workflow() %>%
+  add_recipe(gb_recipe) %>%
+  add_model(gb_model)
+gb_wf
+
+
+param_grid <- grid_regular(
+  tree_depth(range = c(1L, 3L)),
+  learn_rate(range = c(-5, 2), trans = log10_trans()),
+  levels = c(3, 10)
+  )
+param_grid
+
+set.seed(8)
+
+gb_fit <- gb_wf %>%
+  tune_grid(
+    resamples = folds,
+    grid = param_grid,
+    metrics = metric_set(roc_auc, accuracy)
+    )
+gb_fit
+
+gb_fit %>%
+  collect_metrics() %>%
+  print(width = Inf) %>%
+  filter(.metric == "roc_auc") %>%
+  ggplot(mapping = aes(x = learn_rate, y = mean, color = tree_depth)) +
+  geom_point() +
+  labs(x = "Learning Rate", y = "5CV AUC") +
+  scale_x_log10()
+
+gb_fit %>%
+  show_best("roc_auc")
+
+best_gb <- gb_fit %>%
+  select_best("roc_auc")
+best_gb
+
+# Final workflow
+final_wf <- gb_wf %>%
+  finalize_workflow(best_gb)
+final_wf
+final_fit <- 
+  final_wf %>%
+  last_fit(ICU_split)
+final_fit
+final_fit %>% 
+  collect_metrics()
+```
+
+
+
+
+
+
+3. Compare model classification performance on the test set. Report both the area under ROC curve and accuracy for each model.
+
+for the random forest model, the accuracy is 0.9134525 and ROC curve is 0.8736614.
+for the svm model, the accuracy is 0.9001693 and ROC curve is 0.7774845.
+for the Boosting (XGBoost) workflow, the accuracy is 0.9200753 and ROC curve is 0.8808079.
+
+the best model might be Boosting (XGBoost) workflow model, since both accuracy and roc curve are the best.
+
+
+
+
+
