@@ -20,47 +20,6 @@ knitr:
     fig.height: 4
     message: FALSE
 ---
-```{r}
-.rs.restartR()
-```
-
-
-```{r}
-#.rs.restartR()
-install.packages('devtools')
-#install.packages('rjava')
-devtools::install_github('rstudio/keras')
-install.packages("tensorflow")
-```
-
-
-```{r}
-library(reticulate)
-path_to_python <- install_python()
-virtualenv_create("r-reticulate", python = path_to_python)
-```
-```{r}
-library(tensorflow)
-install_tensorflow(envname = "r-reticulate")
-```
-```{r}
-library(tensorflow)
-tf$constant("Hello Tensorflow!")
-```
-
-
-```{r}
-reticulate::install_miniconda()
-install_tensorflow()
-```
-
-
-
-```{r}
-install.packages("keras")
-library(keras)
-```
-
 
 
 
@@ -84,6 +43,7 @@ suppressPackageStartupMessages(library(lubridate))
 Using the ICU cohort `icu_cohort.rds` you built in Homework 3, develop at least three analytic approaches for predicting the 30-day mortality of patients admitted to ICU using demographic information (gender, age, marital status, ethnicity), first lab measurements during ICU stay, and first vital measurements during ICU stay. For example, you can use (1) logistic regression with elastic net (lasso + ridge) penalty (e.g., glmnet or keras package), (2) random forest, (3) boosting, and (4) support vector machines, or (5) MLP neural network (keras package)
 ```{r}
 ##load library##
+
 library(GGally)
 library(gtsummary)
 library(tidyverse)
@@ -96,8 +56,6 @@ library(stringr)
 library(xgboost)
 library(readr)
 library(gtsummary)
-library(tensorflow)
-library(keras)
 library(dplyr)
 options(java.parameters = "-Xmx10g")
 ```
@@ -337,21 +295,11 @@ final_fit %>%
 
 
 
+]
+
+
 ```{r}
-##MLP##
-
-install.packages(tensorflow)
-install_keras()
-install_tensorflow()
-library(tensorflow)
-library(keras)
-use_condaenv("r-tensorflow")
-
-
-
-
-
-mlp_recipe <- 
+gb_recipe <- 
   recipe(
     thirty_day_mort ~ ., 
     data = ICU_Train
@@ -363,78 +311,77 @@ mlp_recipe <-
                    "Systolic_Non_Inactive_BP",
                    "Mean_Non_Inactive_BP",
                    "Respiratory_Rate", 
-                   "Heart_rate") %>%
-  # create traditional dummy variables (necessary for svm)
+                   "Heart_rate") %>%  # create traditional dummy variables
   step_dummy(all_nominal_predictors()) %>%
   # zero-variance filter
   step_zv(all_numeric_predictors()) %>% 
   # center and scale numeric data
-  step_normalize(all_numeric_predictors()) %>%
+  #step_normalize(all_numeric_predictors()) %>%
   # estimate the means and standard deviations
   prep(training = ICU_Train, retain = TRUE)
 
+gb_recipe
 
-mlp_recipe
-
-mlp_model <- 
-  mlp(
+gb_model <- 
+  boost_tree(
     mode = "classification",
-    hidden_units = tune(),
-    dropout = tune(),
-    epochs = 10
+    trees = 1000, 
+    tree_depth = tune(),
+    learn_rate = tune()
   ) %>% 
-  set_engine("keras", verbose = 0)
-mlp_model
+  set_engine("xgboost")
+gb_model
 
-mlp_wf <- workflow() %>%
-  add_recipe(mlp_recipe) %>%
-  add_model(mlp_model)
-mlp_wf
+
+gb_wf <- workflow() %>%
+  add_recipe(gb_recipe) %>%
+  add_model(gb_model)
+gb_wf
+
 
 param_grid <- grid_regular(
-  hidden_units(range = c(1, 10)),
-  dropout(range = c(0, 0.5)),
-  levels = 5
-)
+  tree_depth(range = c(1L, 3L)),
+  learn_rate(range = c(-5, 2), trans = log10_trans()),
+  levels = c(3, 10)
+  )
 param_grid
 
-mlp_fit <- mlp_wf %>%
+set.seed(8)
+
+gb_fit <- gb_wf %>%
   tune_grid(
     resamples = folds,
     grid = param_grid,
     metrics = metric_set(roc_auc, accuracy)
-  )
-mlp_fit
+    )
+gb_fit
 
-mlp_fit %>%
+gb_fit %>%
   collect_metrics() %>%
   print(width = Inf) %>%
   filter(.metric == "roc_auc") %>%
-  ggplot(mapping = aes(x = dropout, y = mean, alpha = hidden_units)) +
+  ggplot(mapping = aes(x = learn_rate, y = mean, color = tree_depth)) +
   geom_point() +
-  labs(x = "Dropout Rate", y = "5CV AUC") +
+  labs(x = "Learning Rate", y = "5CV AUC") +
   scale_x_log10()
 
-mlp_fit %>%
+gb_fit %>%
   show_best("roc_auc")
 
-best_mlp <- mlp_fit %>%
+best_gb <- gb_fit %>%
   select_best("roc_auc")
-best_mlp
+best_gb
 
-final_wf <- mlp_wf %>%
-  finalize_workflow(best_mlp)
+# Final workflow
+final_wf <- gb_wf %>%
+  finalize_workflow(best_gb)
 final_wf
-
 final_fit <- 
   final_wf %>%
   last_fit(ICU_split)
 final_fit
-
 final_fit %>% 
   collect_metrics()
-
-
 ```
 
 
@@ -443,3 +390,14 @@ final_fit %>%
 
 
 3. Compare model classification performance on the test set. Report both the area under ROC curve and accuracy for each model.
+
+for the random forest model, the accuracy is 0.9134525 and ROC curve is 0.8736614.
+for the svm model, the accuracy is 0.9001693 and ROC curve is 0.7774845.
+for the Boosting (XGBoost) workflow, the accuracy is 0.9200753 and ROC curve is 0.8808079.
+
+the best model might be Boosting (XGBoost) workflow model, since both accuracy and roc curve are the best.
+
+
+
+
+
